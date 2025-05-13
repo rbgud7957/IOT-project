@@ -50,14 +50,24 @@ MongoDB에 저장된 데이터를 웹 페이지에서 실시간으로 확인할 
 ## 🧪 실행 방법
 
 ### 1. Mosquitto 실행
-
+![Image](https://github.com/user-attachments/assets/04fbc7a9-ad78-434e-9d46-5f3cd387afe2)
 
 ### 2. node.js 서버 실행
-
+![Image](https://github.com/user-attachments/assets/6bb03b6a-66fa-43ad-827d-35bdca418312)
 
 ### 3. MQTT Publisher 실행
-
+![Image](https://github.com/user-attachments/assets/dd4d3721-5282-442b-ad84-dab2e044f6c6)
 
 ### 4. 웹페이지 확인
+![Image](https://github.com/user-attachments/assets/4d48de20-2dfb-43be-93d0-d337a3be5354)
 
+
+## DB 저장 화면
+![Image](https://github.com/user-attachments/assets/bca72c24-09a4-49b9-ab84-dcf3b58965b5)
+
+![Image](https://github.com/user-attachments/assets/d09b96c7-5827-41fc-84d1-28a66b6ac78b)
+
+![Image](https://github.com/user-attachments/assets/e0a6b3db-2115-4026-9f53-25838496a1bd)
+
+![Image](https://github.com/user-attachments/assets/54fc64f4-a3ac-4adb-9243-6f5f751d4cfe)
 
