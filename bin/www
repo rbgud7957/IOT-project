@@ -1,0 +1,139 @@
+#!/usr/bin/env node
+
+var app = require('../app');
+var debug = require('debug')('iotserver:server');
+var http = require('http');
+var mongoDB = require("mongodb").MongoClient;
+var mqtt = require("mqtt");
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+var server = http.createServer(app);
+
+// Connect Mongo DB 
+var url = "mongodb://127.0.0.1:27017/IoTDB";
+var dbObj = null;
+
+mongoDB.connect(url, function(err, db) {
+  if (err) throw err;
+  dbObj = db;
+  console.log("DB connected");
+});
+
+// MQTT subscriber (MQTT Server connection & Read resource data)
+var client = mqtt.connect("mqtt://127.0.0.1");
+
+client.on("connect", function() {
+  client.subscribe("usd_rate_country");
+  client.subscribe("usd_rate_currency");
+  client.subscribe("usd_rate_rate");
+  console.log("Subscribing to usd_rate topics");
+});
+
+// MQTT 응답 메시지 수신 시 동작
+client.on("message", function(topic, message) {
+  console.log(topic + ": " + message.toString());
+
+  var exchangeRateData = {
+    topic: topic,
+    value: message.toString(),
+    create_at: new Date()
+  };
+
+  var collectionName;
+  if (topic === "usd_rate_country") {
+    collectionName = "Country";
+  } else if (topic === "usd_rate_currency") {
+    collectionName = "Currency";
+  } else if (topic === "usd_rate_rate") {
+    collectionName = "Rate";
+  }
+
+  // 수신한 메시지를 MongoDB에 저장
+  if (collectionName) {
+    var cursor = dbObj.db("Proj").collection(collectionName);
+    cursor.insertOne(exchangeRateData, function(err, result) {
+      if (err) {
+        console.log(err);
+      } else {
+        console.log(JSON.stringify(result));
+      }
+    });
+  }
+});
+
+// get data from MongoDB and then send it to HTML page using socket
+// get data from MongoDB and then send it to HTML page using socket
+var io = require("socket.io")(server);
+io.on("connection", function(socket) {
+  socket.on("socket_evt_update", function(data) {
+    var cursorCountry = dbObj.db("Proj").collection("Country");
+    var cursorCurrency = dbObj.db("Proj").collection("Currency");
+    var cursorRate = dbObj.db("Proj").collection("Rate");
+
+    var options = { sort: { "_id": -1 }, projection: { _id: 0, value: 1, create_at: 1 } };
+
+    var sending_data = {};
+    
+    cursorCountry.findOne({}, options, function(err, resultCountry) {
+      if (!err && resultCountry) {
+        sending_data.country = resultCountry.value;
+      }
+      
+      cursorCurrency.findOne({}, options, function(err, resultCurrency) {
+        if (!err && resultCurrency) {
+          sending_data.currency = resultCurrency.value;
+        }
+
+        cursorRate.findOne({}, options, function(err, resultRate) {
+          if (!err && resultRate) {
+            sending_data.rate = resultRate.value;
+          }
+
+          socket.emit("socket_up_usd_rate", JSON.stringify(sending_data));
+        });
+      });
+    });
+  });
+});
+
+server.listen(port);
+server.on('error', onError);
+server.on('listening', onListening);
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+  if (isNaN(port)) {
+    return val;
+  }
+  if (port >= 0) {
+    return port;
+  }
+  return false;
+}
+
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requires elevated privileges');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' is already in use');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  debug('Listening on ' + bind);
+}

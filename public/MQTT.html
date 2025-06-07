@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+    <meta charset="utf-8">
+    <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
+    <title>Exchange_Rate</title>
+    <meta name="viewport" content="width=device-width">
+    
+    <!-- Google Web Font Embed -->
+    <link href='http://fonts.googleapis.com/css?family=Raleway:400,600,500,300,700' rel='stylesheet' type='text/css'>
+    
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/templatemo_main.css">
+    <style>
+        body {
+            background: url('zoom-bg-1.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-wrapper">
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-center templatemo-logo margin-top-20">
+            <h1 class="templatemo-site-title">
+                <a href="#">Exchange_Rate</a>
+            </h1>
+        </div>
+
+        <div class="container">
+            <div class="col-xs-12 col-sm-12 col-md-8 col-lg-8 col-md-offset-2 col-lg-offset-2 templatemo-content-wrapper">
+                <div class="templatemo-content">
+                    <section id="menu-section" class="active">
+                        <div class="row">
+                            <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3 margin-bottom-20">
+                                <a href="#country" class="change-section">
+                                    <div class="black-bg btn-menu">
+                                        <i class="fa fa-flag"></i>
+                                        <h2>Country</h2>
+                                        <ul class="mqttlist_country"></ul>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3 margin-bottom-20">
+                                <a href="#currency" class="change-section">
+                                    <div class="black-bg btn-menu">
+                                        <i class="fa fa-money"></i>
+                                        <h2>Currency</h2>
+                                        <ul class="mqttlist_currency"></ul>
+                                    </div>
+                                </a>
+                            </div>
+                            <div class="col-xs-6 col-sm-3 col-md-3 col-lg-3 margin-bottom-20">
+                                <a href="#rate" class="change-section">
+                                    <div class="black-bg btn-menu">
+                                        <i class="fa fa-dollar"></i>
+                                        <h2>Rate</i>
+                                        <ul class="mqttlist_rate"></ul>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </section><!-- /.menu-section -->    
+                </div><!-- /.templatemo-content -->  
+            </div><!-- /.templatemo-content-wrapper --> 
+        </div><!-- /.row --> 
+    </div><!-- /#main-wrapper -->
+
+    <div id="preloader">
+        <div id="status">&nbsp;</div>
+    </div><!-- /#preloader -->
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/jquery.backstretch.min.js"></script>
+    <script src="js/templatemo_script.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io.connect();
+        var timer = null;
+
+        $(document).ready(function(){
+            socket.on("socket_up_usd_rate", function(data){
+                console.log("Received data: ", data); // 데이터 출력
+                try {
+                    data = JSON.parse(data);
+                    console.log("Parsed data: ", data); // 파싱된 데이터 출력
+                    $(".mqttlist_country").html('<li>Country: ' + data.country + '</li>');
+                    $(".mqttlist_currency").html('<li>Currency: ' + data.currency + '</li>');
+                    $(".mqttlist_rate").html('<li>Rate: ' + data.rate + '</li>');
+                } catch (error) {
+                    console.error("Error parsing data: ", error);
+                }
+            });
+
+            if(timer == null){
+                timer = window.setInterval(timer_1, 3000);
+            }
+        });
+
+        function timer_1(){
+            socket.emit("socket_evt_update", JSON.stringify({}));
+        }
+    </script>
+</body> 
+</html>
